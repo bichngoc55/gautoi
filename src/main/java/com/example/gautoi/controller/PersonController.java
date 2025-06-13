@@ -30,7 +30,6 @@ public class PersonController {
     public ResponseEntity<PersonResponseDTO> updatePersonByTaxNumber(@RequestBody PersonRequestDTO person){
     // Requirement: tra ve status + data newly created va request gom full entity
         PersonResponseDTO personResponseDTO = personService.updatePerson(person);
-//        return new ResponseEntity<>(personResponseDTO, HttpStatus.OK); khac nhau gi z?
         return ResponseEntity.status(HttpStatus.OK).body(personResponseDTO);
     }
 

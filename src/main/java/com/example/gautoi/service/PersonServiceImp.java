@@ -28,24 +28,18 @@ public class PersonServiceImp implements PersonService {
 
     @Override
     public PersonResponseDTO findPersonByTaxNumber(String taxNumber) {
-        try{
-            Person person = personRepository.findByTaxNumber(taxNumber)
-                    .orElseThrow(() -> {
-                        log.warn("Person not found with tax number: {}", taxNumber);
-                        return new PersonNotFoundException("Person not found with tax number: " + taxNumber);
-                    });
-            log.debug("Successfully found person with tax number: {}", taxNumber);
-            return PersonMapper.toResponseDTO(person);
+        Person person = personRepository.findByTaxNumber(taxNumber)
+                .orElseThrow(() -> {
+                    log.warn("Person not found with tax number: {}", taxNumber);
+                    return new PersonNotFoundException("Person not found with tax number: " + taxNumber);
+                });
 
-        }catch(Exception e){
-            log.error(e.getMessage());
-
-        }
+        log.debug("Successfully found person with tax number: {}", taxNumber);
+        return PersonMapper.toResponseDTO(person);
     }
 
     @Override
     public PersonResponseDTO createPerson(PersonRequestDTO person) {
-        try{
             Optional<Person> existingPerson = personRepository.findByTaxNumber(person.taxNumber());
             if (existingPerson.isPresent()) {
                 throw new PersonNotFoundException("Person already exists with tax number: " + person.taxNumber());
@@ -53,17 +47,10 @@ public class PersonServiceImp implements PersonService {
             Person personCreated = PersonMapper.toEntity(person);
             personRepository.save(personCreated);
             return PersonMapper.toResponseDTO(personCreated);
-        }
-        catch(Exception e){
-            log.error(e.getMessage());
-
-        }
-
     }
 
     @Override
     public PersonResponseDTO updatePerson(PersonRequestDTO person) {
-c       try{
             Person existingPerson = personRepository.findById(person.taxNumber())
                     .orElseThrow(() -> new PersonNotFoundException("Person not found with taxNumber: " + person.taxNumber()));
             if (!existingPerson.getTaxNumber().equals(person.taxNumber())) {
@@ -81,34 +68,21 @@ c       try{
             personRepository.save(existingPerson);
             log.info("Person updated: {} ", existingPerson.getTaxNumber());
             return PersonMapper.toResponseDTO(existingPerson);
-        }catch (Exception e){
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
     public void deletePerson(String taxNumber) {
-        try{
             if(!personRepository.existsByTaxNumber(taxNumber)){
                 log.error("Tax number {} does not exist", taxNumber);
                 return;
             }
             personRepository.deleteById(taxNumber);
             log.info("Person deleted successfully tax Number: {}", taxNumber);
-
-        }catch (Exception e){
-            log.error(e.getMessage());
-        }
     }
 
     @Override
     public List<PersonResponseDTO> findPeopleByNameAndAge(String name) {
-         try{
             List<Person> peopleFound = personRepository.findByPrefixAndOlderThan(name,AGE).orElseThrow(()-> new PersonNotFoundException("Person not found with name and older than 30"));
             return peopleFound.stream().map(PersonMapper::toResponseDTO).collect(Collectors.toList());
-        }catch(PersonNotFoundException e){
-             log.error(e.getMessage());
-        }
     }
 }

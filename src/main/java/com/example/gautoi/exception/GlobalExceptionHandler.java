@@ -15,8 +15,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(PersonNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handlePersonNotFoundException(
-            PersonNotFoundException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handlePersonNotFoundException(PersonNotFoundException ex, WebRequest request) {
         log.error("Person not found: {}", ex.getMessage());
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("timestamp", LocalDateTime.now());
@@ -27,8 +26,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PersonAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handlePersonAlreadyExistsException(
-            PersonAlreadyExistsException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handlePersonAlreadyExistsException( PersonAlreadyExistsException ex, WebRequest request) {
         log.error("Person already exists: {}", ex.getMessage());
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("timestamp", LocalDateTime.now());

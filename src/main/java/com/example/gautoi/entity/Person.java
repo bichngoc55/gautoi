@@ -21,14 +21,12 @@ import java.time.LocalDate;
 @Builder
 public class Person {
     @Id
-//    Tax number là 1 chuỗi 8 number , Không có field nào được null cả
     @Column(name = "tax_number", nullable = false, unique = true)
     private String taxNumber;
     @Column(name = "first_name", nullable = false)
     private String firstName;
     @Column(name = "last_name", nullable = false)
     private String lastName;
-//    dateOfBirth Không lớn hơn ngày hiện tại
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 }
