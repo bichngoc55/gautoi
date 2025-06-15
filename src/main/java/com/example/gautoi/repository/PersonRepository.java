@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PersonRepository extends JpaRepository<Person, String> {
-    Optional<Person> findByTaxNumber(String taxNumber);
-    boolean existsByTaxNumber(String taxNumber);
-//  find people by name and age older than 30
-    @Query("SELECT p FROM Person p WHERE p.firstName LIKE :prefix% AND p.dateOfBirth < :date")
-    Optional<List<Person>> findByPrefixAndOlderThan(@Param("prefix") String prefix, @Param("date") Integer data);
+    @Query("SELECT p FROM Person p WHERE (p.firstName LIKE :name% OR p.lastName LIKE :name%) AND p.dateOfBirth < :date")
+    List<PersonResponseDTO> findByNameStartingWithAndOlderThan(@Param("name") String name, @Param("date") LocalDate date);
 }

@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @Builder
 public class Person {
     @Id
-    @Column(name = "tax_number", nullable = false, unique = true)
+    @Column(name = "tax_number", length = 8, nullable = false, unique = true)
     private String taxNumber;
     @Column(name = "first_name", nullable = false)
     private String firstName;

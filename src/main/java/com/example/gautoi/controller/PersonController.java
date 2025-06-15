@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -14,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PersonController {
     private final PersonService personService;
-    // REST ENDPOINT
     @GetMapping()
     public ResponseEntity<List<PersonResponseDTO>> getPeople(){
         List<PersonResponseDTO> allPeople = personService.getPeople();
@@ -22,35 +23,30 @@ public class PersonController {
     }
 
     @PostMapping()
-    public ResponseEntity<PersonResponseDTO> createPerson( @RequestBody  PersonRequestDTO person) {
+    public ResponseEntity<PersonResponseDTO> createPerson( @RequestBody PersonRequestDTO person) {
         PersonResponseDTO personResponseDTO = personService.createPerson(person);
-        return new ResponseEntity<>(personResponseDTO, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(personResponseDTO);
     }
     @PutMapping()
     public ResponseEntity<PersonResponseDTO> updatePersonByTaxNumber(@RequestBody PersonRequestDTO person){
-    // Requirement: tra ve status + data newly created va request gom full entity
         PersonResponseDTO personResponseDTO = personService.updatePerson(person);
-        return ResponseEntity.status(HttpStatus.OK).body(personResponseDTO);
+        return ResponseEntity.ok(personResponseDTO);
     }
-
 // tim hieu sau ve response entity
-    @DeleteMapping("/{taxNumber}")
-    public ResponseEntity<String> deletePerson(@PathVariable String taxNumber){
-    // Requirement: tra ve status 200 va message neu thanh cong
+    @DeleteMapping()
+    public ResponseEntity<String> deletePerson(@RequestParam String taxNumber){
         personService.deletePerson(taxNumber);
-        return ResponseEntity.status(HttpStatus.OK).body("Deleted person with tax number {} successfully");
+        return ResponseEntity.ok("Deleted person with tax number " + taxNumber + " successfully");
     }
-    // FIND BY TAX Number
     @GetMapping("/{taxNumber}")
     public ResponseEntity<PersonResponseDTO> findByTaxNumber(@PathVariable String taxNumber){
         PersonResponseDTO person  = personService.findPersonByTaxNumber(taxNumber);
-        return ResponseEntity.status(HttpStatus.OK).body(person);
+        return ResponseEntity.ok(person);
     }
-// find by name and age
     @GetMapping("/search")
-    public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(@RequestParam String name){
-        List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name);
-        return ResponseEntity.status(HttpStatus.OK).body(people);
+    public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(@RequestParam String name, @RequestParam LocalDate date){
+        List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name,date);
+        return ResponseEntity.ok(people);
     }
 
 }
