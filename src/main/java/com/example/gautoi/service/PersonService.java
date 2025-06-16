@@ -12,5 +12,5 @@ public interface PersonService {
     PersonResponseDTO createPerson(PersonRequestDTO person);
     PersonResponseDTO updatePerson(PersonRequestDTO person);
     void deletePerson(String taxNumber);
-    List<PersonResponseDTO> findPeopleByNameAndAge(String name, LocalDate birthDate);
+    List<PersonResponseDTO> findPeopleByNameAndAge(String name, LocalDate date);
 }

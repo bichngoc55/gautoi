@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
     <changeSet id="001" author="gautoi">
-        <createTable tableName="Person">
+        <createTable tableName="person">
             <column name="tax_number" type="VARCHAR(8)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

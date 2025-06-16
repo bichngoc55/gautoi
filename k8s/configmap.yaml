@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: gautoi
+data:
+  # Postgres config
+  POSTGRES_DB: "gautoidb"
+  POSTGRES_USER: "gautoi"
+  POSTGRES_PASSWORD: "gautoi"
+  # Spring app conf
+  SPRING_APPLICATION_NAME: "demo"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql-service:5432/gautoidb"
+  SPRING_DATASOURCE_USERNAME: "gautoi"
+  SPRING_DATASOURCE_PASSWORD: "gautoi"
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_SHOW_SQL: "true"
+  SPRING_LIQUIBASE_ENABLED: "true"
+  SPRING_LIQUIBASE_CHANGE_LOG: "classpath:/db/changelog/db.changelog-master.xml"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka-service:29092"
+  # Kafka conf
+  KAFKA_BROKER_ID: "1"
+  KAFKA_ZOOKEEPER_CONNECT: "zookeeper-service:2181"
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-service:29092,PLAINTEXT_HOST://kafka-service:9092"
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+  KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  # Zookeeper config
+  ZOOKEEPER_CLIENT_PORT: "2181"
+  ZOOKEEPER_TICK_TIME: "2000"
+  # Kafka UI config
+  KAFKA_CLUSTERS_0_NAME: "local"
+  KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka-service:29092"
+  KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper-service:2181"
+  DYNAMIC_CONFIG_ENABLED: "true"

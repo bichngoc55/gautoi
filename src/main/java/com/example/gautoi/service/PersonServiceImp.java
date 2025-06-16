@@ -8,11 +8,9 @@ import com.example.gautoi.exception.PersonNotFoundException;
 import com.example.gautoi.exception.PersonValidationException;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
-import com.example.gautoi.util.ErrorUtil;
 import com.example.gautoi.validation.PersonValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -54,8 +52,12 @@ public class PersonServiceImp implements PersonService {
             if(personRepository.existsById(person.taxNumber())){
                 throw new PersonAlreadyExistsException("Person with this tax number already exist "+ person.taxNumber());
             }
+            log.info("Creating person with this tax number: {}", person.taxNumber());
             PersonValidator.validatePersonDTO(person,true);
+            log.info("Creating person with this tax number 2: {}", person.taxNumber());
             Person newPerson = PersonMapper.toEntity(person);
+            log.info("Creating person with this tax number3 : {}", person.taxNumber());
+
             Person savedPerson = personRepository.save(newPerson);
             log.info("Person created with tax number: {}", savedPerson.getTaxNumber());
             return PersonMapper.toResponseDTO(savedPerson);
@@ -108,7 +110,12 @@ public class PersonServiceImp implements PersonService {
         if (name != null && !name.isEmpty() && Character.isLowerCase(name.charAt(0))) {
             return Collections.emptyList();
         }
-        List<PersonResponseDTO> peopleFound = personRepository.findByNameStartingWithAndOlderThan(name,date);
+        LocalDate cutoffDate = LocalDate.now().minusYears(30);
+        List<PersonResponseDTO> peopleFound = personRepository
+                .findByNameStartingWithAndOlderThan(name, cutoffDate)
+                .stream()
+                .map(PersonMapper::toResponseDTO)
+                .collect(Collectors.toList());
         return peopleFound.isEmpty() ? Collections.emptyList() : peopleFound;
     }
 }

@@ -1,11 +1,11 @@
-package com.example.gautoi.integration.kafka.service;
+package com.example.gautoi.integration.kafka;
 import com.example.gautoi.constant.KafkaConstants;
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.entity.Person;
 import com.example.gautoi.exception.PersonAlreadyExistsException;
 import com.example.gautoi.exception.PersonNotFoundException;
 import com.example.gautoi.exception.PersonValidationException;
-import com.example.gautoi.integration.kafka.event.PersonEvent;
+import com.example.gautoi.entity.PersonEvent;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
 import com.example.gautoi.validation.PersonValidator;
@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PersonConsumerService {
     private final PersonRepository personRepository;
-
+// refactor code lai - after demo
     @KafkaListener(topics= KafkaConstants.PERSON_TOPIC, groupId = KafkaConstants.GROUP_ID)
     public void consumePersonService(PersonEvent person) {
         try{
@@ -56,6 +56,7 @@ public class PersonConsumerService {
     }
 
     private void handleUpdatePersonEvent(PersonEvent personEvent) {
+        log.info("Updating person: {}", personEvent.getPerson());
         PersonRequestDTO personDTO = personEvent.getPerson();
         Optional<Person> personOpt = personRepository.findById(personDTO.taxNumber());
         if (personOpt.isEmpty()) {
@@ -71,6 +72,7 @@ public class PersonConsumerService {
      }
 
     private void handleCreatePersonEvent(PersonEvent personEvent) {
+        log.info("Creating person: {}", personEvent.getPerson());
         PersonRequestDTO personDTO = personEvent.getPerson();
         if (personRepository.existsById(personDTO.taxNumber())) {
             throw new PersonAlreadyExistsException("Tax number already exists: " + personDTO.taxNumber());

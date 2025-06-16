@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-app
+  namespace: gautoi
+  labels:
+    app: spring-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-app
+  template:
+    metadata:
+      labels:
+        app: spring-app
+    spec:
+      containers:
+        - name: spring-app
+          image: springboot-demo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: app-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-app-nodeport
+  namespace: gautoi
+  labels:
+    app: spring-app
+spec:
+  selector:
+    app: spring-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 32081
+  type: NodePort
