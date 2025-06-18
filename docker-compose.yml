@@ -1,18 +1,16 @@
 version: '3.8'
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,8 +19,7 @@ services:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      - zookeeper
     ports:
       - "9092:9092"
     environment:
@@ -44,27 +41,24 @@ services:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     depends_on:
-      kafka:
-        condition: service_healthy
+      - kafka
     ports:
       - "8081:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      DYNAMIC_CONFIG_ENABLED: 'true'
     networks:
       - app-network
 
   postgresql:
     image: postgres:15
-    container_name: my-postgresql
-    restart: always
+    container_name: postgresql
     command: postgres -c 'max_connections=150' -c 'shared_buffers=256MB'
     environment:
+      POSTGRES_DB: gautoidb
       POSTGRES_PASSWORD: gautoi
       POSTGRES_USER: gautoi
-      POSTGRES_DB: gautoidb
     ports:
       - "5432:5432"
     networks:
@@ -72,36 +66,30 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gautoi -d gautoidb"]
+      test: [ "CMD-SHELL", "pg_isready -U gautoi" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  demo:
-    build: .
-    image: ${SPRING_BOOT_APP_IMAGE:-springboot-demo:latest}
-    container_name: springboot-demo
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      - SPRING_APPLICATION_NAME=demo
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/gautoidb
-      - SPRING_DATASOURCE_USERNAME=gautoi
-      - SPRING_DATASOURCE_PASSWORD=gautoi
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=true
-      - SPRING_LIQUIBASE_ENABLED=true
-      - SPRING_LIQUIBASE_CHANGE_LOG=classpath:/db/changelog/db.changelog-master.xml
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-    ports:
-      - "8080:8080"
-    networks:
-      - app-network
-    restart: unless-stopped
+#  demo:
+#    build: .
+#    container_name: springboot-demo
+#    image: springboot-demo:latest
+#    depends_on:
+#      - postgresql
+#      - kafka
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/gautoidb
+#      - SPRING_DATASOURCE_USERNAME=gautoi
+#      - SPRING_DATASOURCE_PASSWORD=gautoi
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+#      - SPRING_LIQUIBASE_ENABLED=true
+#      - SPRING_LIQUIBASE_CHANGE_LOG=classpath:/db/changelog/db.changelog-master.xml
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - app-network
 
 networks:
   app-network:
