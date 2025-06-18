@@ -2,13 +2,15 @@ package com.example.gautoi.configuration;
 
 import com.example.gautoi.entity.PersonEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.Map;
 
 @Configuration
@@ -18,13 +20,21 @@ public class ConsumerKafkaConfig {
     @Bean
     KafkaProperties kafkaProperties() {
         KafkaProperties kafkaProperties = new KafkaProperties();
+//        null het
         log.info("kafkaProperties: {}", kafkaProperties);
+        log.info("bootstrap.servers: {}", kafkaProperties.getBootstrapServers());
+        log.info("group.id: {}", kafkaProperties.getConsumer().getGroupId());
+        log.info("auto.offset.reset: {}", kafkaProperties.getConsumer().getAutoOffsetReset());
+        log.info("enable.auto.commit: {}", kafkaProperties.getConsumer().getEnableAutoCommit());
         return kafkaProperties;
     }
 
     @Bean
     public ConsumerFactory<String, PersonEvent> consumerFactory(KafkaProperties kafkaProperties) {
-        return new DefaultKafkaConsumerFactory<>(kafkaProperties.buildConsumerProperties() );
+        ErrorHandlingDeserializer<PersonEvent> valueDeserializer = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(PersonEvent.class, false));
+        ErrorHandlingDeserializer<String> keyDeserializer = new ErrorHandlingDeserializer<>(new StringDeserializer());
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
+        return new DefaultKafkaConsumerFactory<>( props, keyDeserializer, valueDeserializer);
     }
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, PersonEvent> kafkaListenerContainerFactory() {
@@ -32,5 +42,4 @@ public class ConsumerKafkaConfig {
         factory.setConsumerFactory(consumerFactory(kafkaProperties()));
         return factory;
     }
-
 }

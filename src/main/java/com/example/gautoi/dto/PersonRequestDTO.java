@@ -7,5 +7,4 @@ public record PersonRequestDTO(
         String lastName,
         String firstName,
         LocalDate dateOfBirth
-) {
-}
+) { }

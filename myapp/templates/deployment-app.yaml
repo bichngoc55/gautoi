@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-app
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: spring-app
+  template:
+    metadata:
+      labels:
+        app: spring-app
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.35
+          command: [ 'sh', '-c', 'until nc -z postgres 5432; sleep 2; done;' ]
+      containers:
+        - name: spring-app
+          image: "{{ .Values.springApp.image }}"
+
+          ports:
+            - containerPort: {{ .Values.springApp.port }}
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service:{{ .Values.postgres.port }}/{{ .Values.postgres.database }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "{{ .Values.postgres.username }}"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka-service:{{ .Values.kafka.port }}

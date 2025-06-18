@@ -34,13 +34,14 @@ public class PersonConsumerService {
                 default -> throw new IllegalArgumentException("Unexpected value: " + person.getEventType());
             }
         }catch (IllegalArgumentException  | PersonValidationException e) {
-            log.error("Validation error processing person event: {}", person, e);
+            log.error("Validation error processing person event: {} with this message {}", person, e.getMessage());
+
         } catch (PersonNotFoundException | PersonAlreadyExistsException e) {
             log.error("Business error: {}", e.getMessage(), e);
         } catch (SerializationException e) {
-            log.error("Kafka message serialization/deserialization failed: {}", e.getMessage(), e);
+            log.error("Kafka message serialization/deserialization failed: {}", e.getMessage());
         } catch (KafkaException e) {
-            log.error("Kafka client error occurred: {}", e.getMessage(), e);
+            log.error("Kafka client error occurred: {}", e.getMessage());
         }
     }
 

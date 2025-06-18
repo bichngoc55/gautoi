@@ -1,0 +1,4 @@
+postgres:
+  username: gautoi
+  password: gautoi
+  database: gautoidb_dev

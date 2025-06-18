@@ -1,0 +1,4 @@
+postgres:
+  database: gautoidb-qa
+  username: gautoi
+image: myapp:qa

@@ -5,8 +5,8 @@ import com.example.gautoi.dto.PersonResponseDTO;
 
 import java.time.LocalDate;
 import java.util.List;
-// useful for unit test ntn?
-public interface PersonService {
+
+ public interface PersonService {
     List<PersonResponseDTO> getPeople();
     PersonResponseDTO findPersonByTaxNumber(String taxNumber);
     PersonResponseDTO createPerson(PersonRequestDTO person);

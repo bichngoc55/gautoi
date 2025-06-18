@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: "{{ .Values.zookeeper.image }}"
+          ports:
+            - containerPort: {{ .Values.zookeeper.port }}
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: 2181
+            - name:  ZOOKEEPER_TICK_TIME
+              value:  2181

@@ -12,8 +12,6 @@ import java.util.List;
 
 @Repository
 public interface PersonRepository extends JpaRepository<Person, String> {
-//    @Query("SELECT p FROM Person p WHERE (p.firstName LIKE :name% OR p.lastName LIKE :name%) AND p.dateOfBirth < :date")
-//    List<Person> findByNameStartingWithAndOlderThan(@Param("name") String name, @Param("date") LocalDate date);
     @Query("SELECT p FROM Person p WHERE (p.firstName LIKE CONCAT(:name, '%') OR p.lastName LIKE CONCAT(:name, '%')) AND p.dateOfBirth < :date")
     List<Person> findByNameStartingWithAndOlderThan(@Param("name") String name, @Param("date") LocalDate date);
 }

@@ -2,6 +2,9 @@ package com.example.gautoi.controller;
 
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.dto.PersonResponseDTO;
+import com.example.gautoi.exception.PersonAlreadyExistsException;
+import com.example.gautoi.exception.PersonNotFoundException;
+import com.example.gautoi.exception.PersonValidationException;
 import com.example.gautoi.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,27 +29,49 @@ public class PersonController {
     }
 
     @PostMapping()
-    public ResponseEntity<PersonResponseDTO> createPerson( @RequestBody PersonRequestDTO person) {
-        log.info("createPerson");
-        PersonResponseDTO personResponseDTO = personService.createPerson(person);
-        return ResponseEntity.status(HttpStatus.CREATED).body(personResponseDTO);
+    public ResponseEntity<Object> createPerson( @RequestBody PersonRequestDTO person) {
+       try{
+           log.info("createPerson");
+           PersonResponseDTO personResponseDTO = personService.createPerson(person);
+           return ResponseEntity.status(HttpStatus.CREATED).body(personResponseDTO);
+       }catch (PersonValidationException | PersonAlreadyExistsException e){
+           log.error(e.getMessage());
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+       }
     }
     @PutMapping()
-    public ResponseEntity<PersonResponseDTO> updatePersonByTaxNumber(@RequestBody PersonRequestDTO person){
-        log.info("updatePersonByTaxNumber");
-        PersonResponseDTO personResponseDTO = personService.updatePerson(person);
-        return ResponseEntity.ok(personResponseDTO);
+    public ResponseEntity<Object> updatePersonByTaxNumber(@RequestBody PersonRequestDTO person){
+        try {
+            log.info("updatePersonByTaxNumber");
+            PersonResponseDTO personResponseDTO = personService.updatePerson(person);
+            return ResponseEntity.ok(personResponseDTO);
+        } catch (PersonNotFoundException | PersonValidationException e){
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+
+        }
     }
-    @DeleteMapping()
-    public ResponseEntity<String> deletePerson(@RequestParam String taxNumber){
-        log.info("deletePerson");
-        personService.deletePerson(taxNumber);
-        return ResponseEntity.ok("Deleted person with tax number " + taxNumber + " successfully");
+    @DeleteMapping("/{taxNumber}")
+    public ResponseEntity<String> deletePerson(@PathVariable  String taxNumber){
+        try {
+            log.info("deletePerson");
+            personService.deletePerson(taxNumber);
+            return ResponseEntity.ok("Deleted person with tax number " + taxNumber + " successfully");
+        }   catch ( PersonNotFoundException e){
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
     @GetMapping("/{taxNumber}")
-    public ResponseEntity<PersonResponseDTO> findByTaxNumber(@PathVariable String taxNumber){
-        PersonResponseDTO person  = personService.findPersonByTaxNumber(taxNumber);
-        return ResponseEntity.ok(person);
+    public ResponseEntity<Object> findByTaxNumber(@PathVariable String taxNumber){
+        try {
+            PersonResponseDTO person = personService.findPersonByTaxNumber(taxNumber);
+            return ResponseEntity.ok(person);
+        }
+        catch (PersonNotFoundException e){
+        log.error("Person with this tax number {} not found", taxNumber);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
     }
     @GetMapping("/search")
     public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(@RequestParam String name, @RequestParam LocalDate date){
