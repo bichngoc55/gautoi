@@ -4,7 +4,7 @@ import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.exception.PersonValidationException;
 import java.time.LocalDate;
 
-public final class PersonValidator {
+public final class PersonEventValidation {
 
     public static void validatePersonDTO(PersonRequestDTO personDTO, boolean checkAllFields) {
         if (personDTO == null) {

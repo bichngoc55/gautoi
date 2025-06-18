@@ -6,4 +6,6 @@
          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
 
     <include file="changelog-001-create-person-table.xml" relativeToChangelogFile="true"/>
+    <include file="changelog-002-add-taxdebt-column.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

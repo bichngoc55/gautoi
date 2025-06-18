@@ -1,0 +1,20 @@
+replicaCount: 1
+
+springApp:
+  port: 8080
+
+postgres:
+  image: postgres:15
+  port: 5432
+
+kafka:
+  image: bitnami/kafka:3
+  port: 9092
+
+zookeeper:
+  image: bitnami/zookeeper:3
+  port: 2181
+
+kafkaUi:
+  image: provectuslabs/kafka-ui:latest
+  port: 8081

@@ -5,6 +5,8 @@ public record PersonResponseDTO(
         String taxNumber,
         String lastName,
         String firstName,
-        int age
+        int age,
+//        add this :(
+        Double taxDebt
 ) {
 }

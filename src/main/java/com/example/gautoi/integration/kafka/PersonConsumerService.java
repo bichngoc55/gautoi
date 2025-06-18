@@ -8,7 +8,7 @@ import com.example.gautoi.exception.PersonValidationException;
 import com.example.gautoi.entity.PersonEvent;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
-import com.example.gautoi.validation.PersonValidator;
+import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class PersonConsumerService {
     private final PersonRepository personRepository;
 // refactor code lai - after demo
-    @KafkaListener(topics= KafkaConstants.PERSON_TOPIC, groupId = KafkaConstants.GROUP_ID)
+    @KafkaListener(topics= KafkaConstants.PERSON_TOPIC, groupId = KafkaConstants.GROUP_ID, containerFactory = KafkaConstants.GROUP_KAFKA_FACTORY )
     public void consumePersonService(PersonEvent person) {
         try{
             switch (person.getEventType()){
@@ -51,7 +51,7 @@ public class PersonConsumerService {
         if (!personRepository.existsById(taxNumber)) {
             throw new PersonNotFoundException("Person not found: " + taxNumber);
         }
-        PersonValidator.validatePersonDTO(personDTO,false);
+        PersonEventValidation.validatePersonDTO(personDTO,false);
         personRepository.deleteById(taxNumber);
         log.info("Deleted person with tax number: {}", taxNumber);
     }
@@ -63,7 +63,7 @@ public class PersonConsumerService {
         if (personOpt.isEmpty()) {
             throw new PersonNotFoundException("Person not found: " + personDTO.taxNumber());
         }
-        PersonValidator.validatePersonDTO(personDTO, true);
+        PersonEventValidation.validatePersonDTO(personDTO, true);
         Person existing = personOpt.get();
         existing.setFirstName(personDTO.firstName());
         existing.setLastName(personDTO.lastName());
@@ -78,7 +78,7 @@ public class PersonConsumerService {
         if (personRepository.existsById(personDTO.taxNumber())) {
             throw new PersonAlreadyExistsException("Tax number already exists: " + personDTO.taxNumber());
         }
-        PersonValidator.validatePersonDTO(personDTO,true);
+        PersonEventValidation.validatePersonDTO(personDTO,true);
         Person newPerson = PersonMapper.toEntity(personDTO);
         personRepository.save(newPerson);
         log.info("Created person with tax number: {} and with body: {}", personDTO.taxNumber(), personDTO);

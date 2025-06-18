@@ -7,7 +7,7 @@ import com.example.gautoi.exception.PersonAlreadyExistsException;
 import com.example.gautoi.exception.PersonNotFoundException;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
-import com.example.gautoi.validation.PersonValidator;
+import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class PersonServiceImp implements PersonService {
             if(personRepository.existsById(person.taxNumber())){
                 throw new PersonAlreadyExistsException(person.taxNumber());
             }
-            PersonValidator.validatePersonDTO(person,true);
+            PersonEventValidation.validatePersonDTO(person,true);
             Person newPerson = PersonMapper.toEntity(person);
             Person savedPerson = personRepository.save(newPerson);
             log.info("Person created with tax number: {}", savedPerson.getTaxNumber());
@@ -57,7 +57,7 @@ public class PersonServiceImp implements PersonService {
         if (personOptional.isEmpty()) {
             throw new PersonNotFoundException("Person not found with this tax number" + person.taxNumber());
         }
-        PersonValidator.validatePersonDTO(person, true);
+        PersonEventValidation.validatePersonDTO(person, true);
         Person updatedPerson = personOptional.get();
         updatedPerson.setLastName(person.lastName());
         updatedPerson.setFirstName(person.firstName());

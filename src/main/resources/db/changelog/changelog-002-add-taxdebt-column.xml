@@ -6,7 +6,7 @@
          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
     <changeSet id="addColumnTax" author="gautoi">
         <addColumn tableName="person">
-                <column name="tax_debt" type="int"/>
+                <column name="tax_debt" type="double"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

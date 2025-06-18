@@ -29,4 +29,6 @@ public class Person {
     private String lastName;
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
+    @Column(name="tax_debt" )
+    private Double taxDebt;
 }
