@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -34,7 +34,8 @@ public class PersonController {
            log.info("createPerson");
            PersonResponseDTO personResponseDTO = personService.createPerson(person);
            return ResponseEntity.status(HttpStatus.CREATED).body(personResponseDTO);
-       }catch (PersonValidationException | PersonAlreadyExistsException e){
+       }catch (PersonValidationException | DateTimeParseException | PersonAlreadyExistsException e){
+//           sao ko vao day
            log.error(e.getMessage());
            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
        }
@@ -74,8 +75,8 @@ public class PersonController {
     }
     }
     @GetMapping("/search")
-    public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(@RequestParam String name, @RequestParam LocalDate date){
-        List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name,date);
+    public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(@RequestParam String name, @RequestParam int minAge){
+        List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name,minAge);
         return ResponseEntity.ok(people);
     }
 

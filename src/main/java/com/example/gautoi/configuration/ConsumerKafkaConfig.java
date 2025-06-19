@@ -10,10 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Map;
 
@@ -24,7 +22,7 @@ public class ConsumerKafkaConfig {
     @Bean
     KafkaProperties kafkaProperties() {
         KafkaProperties kafkaProperties = new KafkaProperties();
-//        null het
+//        null het, tru bootstrap server why???
         log.info("kafkaProperties: {}", kafkaProperties);
         log.info("bootstrap.servers: {}", kafkaProperties.getBootstrapServers());
         log.info("group.id: {}", kafkaProperties.getConsumer().getGroupId());
@@ -49,12 +47,14 @@ public class ConsumerKafkaConfig {
         factory.setConsumerFactory(personConsumerFactory(kafkaProperties));
         return factory;
     }
-// van hoi confused why tao tu dong z ? kafka listener tu dong tao group id vs topic a
     // tax consumer factory
     @Bean
     public ConsumerFactory<String, TaxCalculationEvent> taxConsumerFactory(KafkaProperties kafkaProperties) {
-        ErrorHandlingDeserializer<TaxCalculationEvent> valueDeserializer = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(TaxCalculationEvent.class, false));
-        ErrorHandlingDeserializer<String> keyDeserializer = new ErrorHandlingDeserializer<>(new StringDeserializer());
+
+        ErrorHandlingDeserializer<TaxCalculationEvent> valueDeserializer
+                = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(TaxCalculationEvent.class, false));
+        ErrorHandlingDeserializer<String> keyDeserializer
+                = new ErrorHandlingDeserializer<>(new StringDeserializer());
         Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         return new DefaultKafkaConsumerFactory<>(props, keyDeserializer, valueDeserializer);
     }

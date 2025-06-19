@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PersonServiceImp implements PersonService {
+public class PersonServiceImpl implements PersonService {
     private final PersonRepository personRepository;
     @Override
     public List<PersonResponseDTO> getPeople() {
@@ -31,24 +32,24 @@ public class PersonServiceImp implements PersonService {
 
     @Override
     public PersonResponseDTO findPersonByTaxNumber(String taxNumber) {
-            Optional<Person> person= personRepository.findById(taxNumber);
-            if(person.isEmpty()){
-                throw new PersonNotFoundException("Person not found with this Tax Number"+ taxNumber);
-            }
-            log.info("Person found with this tax number: {}", taxNumber);
-            return PersonMapper.toResponseDTO(person.get());
+        Optional<Person> person= personRepository.findById(taxNumber);
+        if(person.isEmpty()){
+            throw new PersonNotFoundException("Person not found with this Tax Number"+ taxNumber);
+        }
+        log.info("Person found with this tax number: {}", taxNumber);
+        return PersonMapper.toResponseDTO(person.get());
     }
 
     @Override
     public PersonResponseDTO createPerson(PersonRequestDTO person) {
-            if(personRepository.existsById(person.taxNumber())){
-                throw new PersonAlreadyExistsException(person.taxNumber());
-            }
-            PersonEventValidation.validatePersonDTO(person,true);
-            Person newPerson = PersonMapper.toEntity(person);
-            Person savedPerson = personRepository.save(newPerson);
-            log.info("Person created with tax number: {}", savedPerson.getTaxNumber());
-            return PersonMapper.toResponseDTO(savedPerson);
+        if(personRepository.existsById(person.taxNumber())){
+            throw new PersonAlreadyExistsException(person.taxNumber());
+        }
+        PersonEventValidation.validatePersonDTO(person,true);
+        Person newPerson = PersonMapper.toEntity(person);
+        Person savedPerson = personRepository.save(newPerson);
+        log.info("Person created with tax number: {}", savedPerson.getTaxNumber());
+        return PersonMapper.toResponseDTO(savedPerson);
     }
 
     @Override
@@ -69,24 +70,24 @@ public class PersonServiceImp implements PersonService {
 
     @Override
     public void deletePerson(String taxNumber) {
-            if(!personRepository.existsById(taxNumber)){
-                throw new PersonNotFoundException("Person not found with this tax number"+ taxNumber );
-            }
-            personRepository.deleteById(taxNumber);
-            log.info("Person with tax number {} deleted successfully", taxNumber);
+        if(!personRepository.existsById(taxNumber)){
+            throw new PersonNotFoundException("Person not found with this tax number"+ taxNumber );
+        }
+        personRepository.deleteById(taxNumber);
+        log.info("Person with tax number {} deleted successfully", taxNumber);
     }
 
     @Override
-    public List<PersonResponseDTO> findPeopleByNameAndAge(String name, LocalDate date) {
+    public List<PersonResponseDTO> findPeopleByNameAndAge(String name, int minAge) {
         if (name != null && !name.isEmpty() && Character.isLowerCase(name.charAt(0))) {
+//            throw exception
             return Collections.emptyList();
         }
-        LocalDate cutoffDate = LocalDate.now().minusYears(30);
-        List<PersonResponseDTO> peopleFound = personRepository
-                .findByNameStartingWithAndOlderThan(name, cutoffDate)
-                .stream()
-                .map(PersonMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        List<Person> people = personRepository.findByNameStartingWithCaseSensitive(name);
+        LocalDate today = LocalDate.now();
+         List<PersonResponseDTO> peopleFound = people.stream()
+                .filter(p -> Period.between(p.getDateOfBirth(), today).getYears() > minAge)
+                .map(PersonMapper::toResponseDTO).toList();
         return peopleFound.isEmpty() ? Collections.emptyList() : peopleFound;
     }
 }

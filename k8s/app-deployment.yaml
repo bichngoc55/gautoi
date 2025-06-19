@@ -17,19 +17,20 @@ spec:
     spec:
       containers:
         - name: spring-app
-          image: springboot-demo:latest
-          imagePullPolicy: IfNotPresent
+          image: localhost:5000/spring-demo:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: app-config
-
+      imagePullSecrets:
+        - name: my-registry-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-app-nodeport
+  name: spring-app-service
   namespace: gautoi
   labels:
     app: spring-app

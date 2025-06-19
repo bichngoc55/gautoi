@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: kafka-ui
-          image: provectuslabs/kafka-ui:latest
+          image: docker.io/provectuslabs/kafka-ui:latest
           ports:
             - containerPort: 8080
           envFrom:
@@ -27,7 +27,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka-ui-nodeport
+  name: kafka-ui-service
   namespace: gautoi
   labels:
     app: kafka-ui

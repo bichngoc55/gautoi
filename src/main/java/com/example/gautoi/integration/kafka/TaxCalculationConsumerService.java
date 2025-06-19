@@ -41,6 +41,4 @@ public class TaxCalculationConsumerService {
             log.error(e.getMessage());
         }
     }
-
-
 }

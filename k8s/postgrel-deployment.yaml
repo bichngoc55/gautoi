@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: postgres:15
+          image: docker.io/library/postgres:17.4
           ports:
             - containerPort: 5432
               name: postgres
@@ -43,7 +43,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgresql-nodeport
+  name: postgresql-service
   namespace: gautoi
   labels:
     app: postgresql

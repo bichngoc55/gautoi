@@ -13,7 +13,6 @@ public class PersonMapper {
                 .firstName(personRequestDTO.firstName())
                 .lastName(personRequestDTO.lastName())
                 .dateOfBirth(personRequestDTO.dateOfBirth())
-//  requirement: tax debt must be 0 when newly created
                 .taxDebt(0.0)
                 .build();
     }
