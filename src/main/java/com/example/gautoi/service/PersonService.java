@@ -3,7 +3,6 @@ package com.example.gautoi.service;
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.dto.PersonResponseDTO;
 
-import java.time.LocalDate;
 import java.util.List;
 
  public interface PersonService {
@@ -12,5 +11,5 @@ import java.util.List;
     PersonResponseDTO createPerson(PersonRequestDTO person);
     PersonResponseDTO updatePerson(PersonRequestDTO person);
     void deletePerson(String taxNumber);
-    List<PersonResponseDTO> findPeopleByNameAndAge(String name, int age);
+    List<PersonResponseDTO> findPeopleByNameAndAge(String name, int age,int offset, int limit);
 }

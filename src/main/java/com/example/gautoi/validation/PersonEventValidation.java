@@ -15,7 +15,8 @@ public final class PersonEventValidation {
             throw new PersonValidationException("Tax number must be an 8 length string");
         }
         if (checkAllFields) {
-            if (personDTO.firstName() == null || personDTO.lastName() == null) {
+//            empty van dc ha?
+            if (  personDTO.firstName() == null || personDTO.lastName() == null) {
                 throw new PersonValidationException("Name cant be null");
             }
             if (personDTO.dateOfBirth() == null) {
@@ -28,3 +29,4 @@ public final class PersonEventValidation {
     }
 
 }
+

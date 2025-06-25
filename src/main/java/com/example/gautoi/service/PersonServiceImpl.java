@@ -5,12 +5,16 @@ import com.example.gautoi.dto.PersonResponseDTO;
 import com.example.gautoi.entity.Person;
 import com.example.gautoi.exception.PersonAlreadyExistsException;
 import com.example.gautoi.exception.PersonNotFoundException;
+import com.example.gautoi.exception.PersonValidationException;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
 import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collections;
@@ -34,7 +38,7 @@ public class PersonServiceImpl implements PersonService {
     public PersonResponseDTO findPersonByTaxNumber(String taxNumber) {
         Optional<Person> person= personRepository.findById(taxNumber);
         if(person.isEmpty()){
-            throw new PersonNotFoundException("Person not found with this Tax Number"+ taxNumber);
+            throw new PersonNotFoundException("Person not found with this Tax Number " + taxNumber);
         }
         log.info("Person found with this tax number: {}", taxNumber);
         return PersonMapper.toResponseDTO(person.get());
@@ -56,7 +60,7 @@ public class PersonServiceImpl implements PersonService {
     public PersonResponseDTO updatePerson(PersonRequestDTO person) {
         Optional<Person> personOptional = personRepository.findById(person.taxNumber());
         if (personOptional.isEmpty()) {
-            throw new PersonNotFoundException("Person not found with this tax number" + person.taxNumber());
+            throw new PersonNotFoundException("Person not found with this tax number " + person.taxNumber());
         }
         PersonEventValidation.validatePersonDTO(person, true);
         Person updatedPerson = personOptional.get();
@@ -71,23 +75,27 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public void deletePerson(String taxNumber) {
         if(!personRepository.existsById(taxNumber)){
-            throw new PersonNotFoundException("Person not found with this tax number"+ taxNumber );
+            throw new PersonNotFoundException("Person not found with this tax number " + taxNumber);
         }
         personRepository.deleteById(taxNumber);
         log.info("Person with tax number {} deleted successfully", taxNumber);
     }
 
     @Override
-    public List<PersonResponseDTO> findPeopleByNameAndAge(String name, int minAge) {
+    public List<PersonResponseDTO> findPeopleByNameAndAge(String name, int minAge, int offset, int limit) {
         if (name != null && !name.isEmpty() && Character.isLowerCase(name.charAt(0))) {
-//            throw exception
-            return Collections.emptyList();
+            throw new PersonValidationException("Name must be required and upper case letter.");
         }
-        List<Person> people = personRepository.findByNameStartingWithCaseSensitive(name);
+        if (minAge < 0) {
+            throw new PersonValidationException("Minimum age cannot be negative.");
+        }
         LocalDate today = LocalDate.now();
-         List<PersonResponseDTO> peopleFound = people.stream()
-                .filter(p -> Period.between(p.getDateOfBirth(), today).getYears() > minAge)
+
+        Pageable pageable = PageRequest.of(offset, limit);
+        List<Person> peopleFound = personRepository.findByFirstNameStartingWithOrLastNameStartingWith(name, name, pageable);
+
+        List<PersonResponseDTO> peopleResult = peopleFound.stream().filter(p -> Period.between(p.getDateOfBirth(), today).getYears() > minAge)
                 .map(PersonMapper::toResponseDTO).toList();
-        return peopleFound.isEmpty() ? Collections.emptyList() : peopleFound;
+        return peopleResult.isEmpty() ? Collections.emptyList() : peopleResult;
     }
 }
