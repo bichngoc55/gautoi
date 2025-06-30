@@ -1,4 +1,4 @@
-package com.example.gautoi.handler;
+package com.example.gautoi.integration.kafka.service;
 
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.entity.Person;
@@ -11,6 +11,8 @@ import com.example.gautoi.repository.PersonRepository;
 import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -18,10 +20,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class PersonServiceKafkaHandler {
+public class PersonServiceKafka {
     private final PersonRepository personRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public  void handleDeletePersonEvent(PersonEvent personEvent) {
+        log.info("handleDeletePersonEvent");
         PersonRequestDTO personDTO = personEvent.getPerson();
         String taxNumber = personDTO.taxNumber();
         if (!personRepository.existsById(taxNumber)) {
@@ -48,17 +52,19 @@ public class PersonServiceKafkaHandler {
         log.info("Updated person with tax number: {}", personDTO.taxNumber());
     }
 
-    public void handleCreatePersonEvent(PersonEvent personEvent) {
-        log.info("Creating person: {}", personEvent.getPerson());
-        PersonRequestDTO personDTO = personEvent.getPerson();
+    public void handleCreatePersonEvent(ConsumerRecord<String, PersonEvent> personEvent) {
+            PersonRequestDTO personDTO = personEvent.value().getPerson();
+            log.info("Created person with   {}", personDTO);
+
         if (personRepository.existsById(personDTO.taxNumber())) {
             throw new PersonAlreadyExistsException("Tax number already exists: " + personDTO.taxNumber());
         }
-        if(personEvent.getPerson().taxNumber().equals("123456789"))
-            throw new SimulatePersonRunTimeException("Simulate person runtime exception");
-        PersonEventValidation.validatePersonDTO(personDTO,true);
+            if (personDTO.taxNumber().equals("123456789"))
+                throw new SimulatePersonRunTimeException("Simulate person runtime exception", personEvent);
+            PersonEventValidation.validatePersonDTO(personDTO, true);
         Person newPerson = PersonMapper.toEntity(personDTO);
         personRepository.save(newPerson);
         log.info("Created person with tax number: {} and with body: {}", personDTO.taxNumber(), personDTO);
+
     }
 }

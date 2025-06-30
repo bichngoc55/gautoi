@@ -13,7 +13,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "spring.kafka.retry")
 public class KafkaRetryProperties {
     private long backoff;
-    private int maxAttempts;
+    private  int maxAttempts;
     private int concurrency;
     private List<String> includeTopics;
 }

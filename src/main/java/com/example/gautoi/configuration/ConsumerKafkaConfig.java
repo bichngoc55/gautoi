@@ -13,10 +13,13 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.BackOff;
+import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Map;
@@ -31,6 +34,7 @@ public class ConsumerKafkaConfig {
         log.info("kafkaProperties: {}", kafkaProperties);
         log.info("bootstrap.servers: {}", kafkaProperties.getBootstrapServers());
         log.info("group.id: {}", kafkaProperties.getConsumer().getGroupId());
+        log.info("getMaxPollRecords: {}", kafkaProperties.getConsumer().getMaxPollRecords());
         log.info("auto.offset.reset: {}", kafkaProperties.getConsumer().getAutoOffsetReset());
         log.info("enable.auto.commit: {}", kafkaProperties.getConsumer().getEnableAutoCommit());
         return kafkaProperties;
@@ -40,16 +44,17 @@ public class ConsumerKafkaConfig {
     public ConsumerFactory<String, PersonEvent> personConsumerFactory(KafkaProperties kafkaProperties) {
         ErrorHandlingDeserializer<PersonEvent> valueDeserializer = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(PersonEvent.class, false));
         ErrorHandlingDeserializer<String> keyDeserializer = new ErrorHandlingDeserializer<>(new StringDeserializer());
-
         Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         return new DefaultKafkaConsumerFactory<>(props, keyDeserializer, valueDeserializer);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, PersonEvent> personKafkaListenerContainerFactory(KafkaProperties kafkaProperties) {
+    public ConcurrentKafkaListenerContainerFactory<String, PersonEvent> personKafkaListenerContainerFactory(KafkaProperties kafkaProperties, KafkaTemplate<String, Object> kafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, PersonEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(personConsumerFactory(kafkaProperties));
+        factory.setBatchListener(true);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         return factory;
     }
 
@@ -68,20 +73,22 @@ public class ConsumerKafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, TaxCalculationEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(taxConsumerFactory(kafkaProperties));
-//
         factory.setCommonErrorHandler(errorHandler);
+        factory.setBatchListener(true);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         return factory;
     }
 
     @Bean
     public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
         FixedBackOff backOff = new FixedBackOff(3000, 3);
+
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (record, ex) -> {
-            log.error("Inside error handler {}", ex.getMessage());
-            return new TopicPartition("tax-calculation-events.dlt", record.partition());
+            log.info("Record trong DLQ : {}", record);
+            String consumerTopic = record.topic();
+            return new TopicPartition(consumerTopic+"dlt", record.partition());
         });
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
-        errorHandler.setRetryListeners((record, ex, deliveryAttempt) -> log.error("Kafka error handled (attempt {}): {}", deliveryAttempt, ex.getMessage()));
         errorHandler.addNotRetryableExceptions(NonRetryException.class);
         return errorHandler;
     }

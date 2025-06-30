@@ -1,7 +1,11 @@
 package com.example.gautoi.exception;
 
-public class MaximumAmountExceedException extends RuntimeException {
-    public MaximumAmountExceedException(String message) {
-        super(message);
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.listener.BatchListenerFailedException;
+
+public class MaximumAmountExceedException extends BatchListenerFailedException {
+    public MaximumAmountExceedException(String message, ConsumerRecord record) {
+        super(message, record);
+
     }
 }

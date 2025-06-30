@@ -62,6 +62,4 @@ public class PersonController {
         List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name, minAge, offset, limit);
         return ResponseEntity.ok(people);
     }
-
-
 }
