@@ -5,10 +5,12 @@ import com.example.gautoi.dto.PersonResponseDTO;
 import com.example.gautoi.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Page;
 import java.util.List;
 
 @RestController
@@ -54,12 +56,13 @@ public class PersonController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<PersonResponseDTO>> findPeopleByNameAndAge(
+    public ResponseEntity<Page<PersonResponseDTO>> findPeopleByNameAndAge(
             @RequestParam String name,
             @RequestParam int minAge,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-        List<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name, minAge, offset, limit);
+        Pageable pageable = PageRequest.of(offset, limit);
+        Page<PersonResponseDTO> people = personService.findPeopleByNameAndAge(name, minAge, pageable);
         return ResponseEntity.ok(people);
     }
 }

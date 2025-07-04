@@ -1,5 +1,6 @@
 package com.example.gautoi.service;
 
+import com.example.gautoi.annotation.AuditableLog;
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.dto.PersonResponseDTO;
 import com.example.gautoi.entity.Person;
@@ -8,9 +9,12 @@ import com.example.gautoi.exception.PersonNotFoundException;
 import com.example.gautoi.exception.PersonValidationException;
 import com.example.gautoi.mapper.PersonMapper;
 import com.example.gautoi.repository.PersonRepository;
+import com.example.gautoi.util.SourceType;
 import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,13 +31,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PersonServiceImpl implements PersonService {
     private final PersonRepository personRepository;
+    @AuditableLog(SourceType.SERVICE)
     @Override
     public List<PersonResponseDTO> getPeople() {
         return personRepository.findAll().stream()
                 .map(PersonMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
-
+    @AuditableLog(SourceType.SERVICE)
     @Override
     public PersonResponseDTO findPersonByTaxNumber(String taxNumber) {
         Optional<Person> person= personRepository.findById(taxNumber);
@@ -43,7 +48,7 @@ public class PersonServiceImpl implements PersonService {
         log.info("Person found with this tax number: {}", taxNumber);
         return PersonMapper.toResponseDTO(person.get());
     }
-
+    @AuditableLog(SourceType.SERVICE)
     @Override
     public PersonResponseDTO createPerson(PersonRequestDTO person) {
         if(personRepository.existsById(person.taxNumber())){
@@ -55,7 +60,7 @@ public class PersonServiceImpl implements PersonService {
         log.info("Person created with tax number: {}", savedPerson.getTaxNumber());
         return PersonMapper.toResponseDTO(savedPerson);
     }
-
+    @AuditableLog(SourceType.SERVICE)
     @Override
     public PersonResponseDTO updatePerson(PersonRequestDTO person) {
         Optional<Person> personOptional = personRepository.findById(person.taxNumber());
@@ -71,7 +76,7 @@ public class PersonServiceImpl implements PersonService {
         log.info("Person updated with tax number: {}", updatedPerson.getTaxNumber());
         return PersonMapper.toResponseDTO(savedPerson);
     }
-
+    @AuditableLog(SourceType.SERVICE)
     @Override
     public void deletePerson(String taxNumber) {
         if(!personRepository.existsById(taxNumber)){
@@ -80,9 +85,9 @@ public class PersonServiceImpl implements PersonService {
         personRepository.deleteById(taxNumber);
         log.info("Person with tax number {} deleted successfully", taxNumber);
     }
-
+    @AuditableLog(SourceType.SERVICE)
     @Override
-    public List<PersonResponseDTO> findPeopleByNameAndAge(String name, int minAge, int offset, int limit) {
+    public Page<PersonResponseDTO> findPeopleByNameAndAge(String name, int minAge, Pageable pageable) {
         if (name != null && !name.isEmpty() && Character.isLowerCase(name.charAt(0))) {
             throw new PersonValidationException("Name must be required and upper case letter.");
         }
@@ -90,12 +95,11 @@ public class PersonServiceImpl implements PersonService {
             throw new PersonValidationException("Minimum age cannot be negative.");
         }
         LocalDate today = LocalDate.now();
-
-        Pageable pageable = PageRequest.of(offset, limit);
-        List<Person> peopleFound = personRepository.findByFirstNameStartingWithOrLastNameStartingWith(name, name, pageable);
+        Page<Person> peopleFound = personRepository.findByFirstNameStartingWithOrLastNameStartingWith(name, name, pageable);
 
         List<PersonResponseDTO> peopleResult = peopleFound.stream().filter(p -> Period.between(p.getDateOfBirth(), today).getYears() > minAge)
                 .map(PersonMapper::toResponseDTO).toList();
-        return peopleResult.isEmpty() ? Collections.emptyList() : peopleResult;
+        return new PageImpl<>(peopleResult);
+
     }
 }

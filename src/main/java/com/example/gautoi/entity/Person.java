@@ -21,7 +21,6 @@ public class Person {
     private String taxNumber;
     @Column(name = "first_name", nullable = false)
     private String firstName;
-    @org.hibernate.annotations.Index(name = "lastname_index")
     @Column(name = "last_name", nullable = false)
     private String lastName;
     @Column(name = "date_of_birth", nullable = false)

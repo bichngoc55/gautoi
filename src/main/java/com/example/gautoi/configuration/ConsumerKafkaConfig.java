@@ -1,9 +1,12 @@
 package com.example.gautoi.configuration;
 
+import com.example.gautoi.constant.KafkaConstants;
+import com.example.gautoi.entity.GauEvent;
 import com.example.gautoi.entity.PersonEvent;
 import com.example.gautoi.entity.TaxCalculationEvent;
 import com.example.gautoi.exception.NonRetryException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -18,8 +21,6 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.util.backoff.BackOff;
-import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Map;
@@ -32,11 +33,6 @@ public class ConsumerKafkaConfig {
     KafkaProperties kafkaProperties() {
         KafkaProperties kafkaProperties = new KafkaProperties();
         log.info("kafkaProperties: {}", kafkaProperties);
-        log.info("bootstrap.servers: {}", kafkaProperties.getBootstrapServers());
-        log.info("group.id: {}", kafkaProperties.getConsumer().getGroupId());
-        log.info("getMaxPollRecords: {}", kafkaProperties.getConsumer().getMaxPollRecords());
-        log.info("auto.offset.reset: {}", kafkaProperties.getConsumer().getAutoOffsetReset());
-        log.info("enable.auto.commit: {}", kafkaProperties.getConsumer().getEnableAutoCommit());
         return kafkaProperties;
     }
 
@@ -49,7 +45,7 @@ public class ConsumerKafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, PersonEvent> personKafkaListenerContainerFactory(KafkaProperties kafkaProperties, KafkaTemplate<String, Object> kafkaTemplate) {
+    public ConcurrentKafkaListenerContainerFactory<String, PersonEvent> personKafkaListenerContainerFactory(KafkaProperties kafkaProperties) {
         ConcurrentKafkaListenerContainerFactory<String, PersonEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(personConsumerFactory(kafkaProperties));
@@ -86,11 +82,20 @@ public class ConsumerKafkaConfig {
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (record, ex) -> {
             log.info("Record trong DLQ : {}", record);
             String consumerTopic = record.topic();
-            return new TopicPartition(consumerTopic+"dlt", record.partition());
+            return new TopicPartition(consumerTopic+"-dlt", record.partition());
         });
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
         errorHandler.addNotRetryableExceptions(NonRetryException.class);
         return errorHandler;
+    }
+
+    @Bean
+    public ConsumerFactory<String, GauEvent> gauConsumerFactory(KafkaProperties kafkaProperties) {
+        ErrorHandlingDeserializer<GauEvent> valueDeserializer = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(GauEvent.class, false));
+        ErrorHandlingDeserializer<String> keyDeserializer = new ErrorHandlingDeserializer<>(new StringDeserializer());
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaConstants.GAU_GROUP);
+        return new DefaultKafkaConsumerFactory<>(props, keyDeserializer, valueDeserializer);
     }
 
 }

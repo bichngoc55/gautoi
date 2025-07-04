@@ -2,6 +2,8 @@ package com.example.gautoi.service;
 
 import com.example.gautoi.dto.PersonRequestDTO;
 import com.example.gautoi.dto.PersonResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,5 +13,6 @@ import java.util.List;
     PersonResponseDTO createPerson(PersonRequestDTO person);
     PersonResponseDTO updatePerson(PersonRequestDTO person);
     void deletePerson(String taxNumber);
-    List<PersonResponseDTO> findPeopleByNameAndAge(String name, int age,int offset, int limit);
+
+    Page<PersonResponseDTO> findPeopleByNameAndAge(String name, int age, Pageable pageable);
 }

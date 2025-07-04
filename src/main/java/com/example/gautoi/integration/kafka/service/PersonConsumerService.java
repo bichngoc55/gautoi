@@ -12,7 +12,6 @@ import com.example.gautoi.validation.PersonEventValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,9 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class PersonServiceKafka {
+public class PersonConsumerService {
     private final PersonRepository personRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public  void handleDeletePersonEvent(PersonEvent personEvent) {
         log.info("handleDeletePersonEvent");
